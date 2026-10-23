@@ -35,7 +35,7 @@
   section.id='mqCommandCenter';
   section.setAttribute('aria-label','MARINE QUO Command Center');
   section.innerHTML=`
-    <div class="mq-top"><div><div class="mq-eyebrow">MARINE QUO · BY KONTES MARINE</div><h2>COMMAND CENTER</h2></div><span class="mq-refresh">Your operations at a glance</span></div>
+    <div class="mq-top"><div><div class="mq-eyebrow">MARINE QUO · BY KONTES MARINE</div><h2>Command center</h2></div><span class="mq-refresh">Your operations at a glance</span></div>
     <div class="mq-grid">
       <div class="mq-panel"><h3>Quick actions</h3><div class="mq-actions">
         <a class="mq-action" href="#fleetSection"><span aria-hidden="true">⚓</span>Add a vessel<span aria-hidden="true">↗</span></a>
