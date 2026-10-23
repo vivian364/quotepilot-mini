@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "MARINE QUO",
+  "short_name": "MARINE QUO",
+  "description": "Vessel Passport by KONTES MARINE",
+  "start_url": "/passport.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#082639",
+  "theme_color": "#082639",
+  "icons": [
+    {
+      "src": "/marinequo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/marinequo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
