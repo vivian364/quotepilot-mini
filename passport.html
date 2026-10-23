@@ -125,4 +125,4 @@ $('portalChatForm').onsubmit=async e=>{
 $('requestSearch').addEventListener('input',renderRequests);$('requestVesselFilter').addEventListener('change',renderRequests);$('requestStatusFilter').addEventListener('change',renderRequests);$('refreshWorkspace').onclick=async()=>{const button=$('refreshWorkspace');button.disabled=true;try{await loadWorkspace()}finally{button.disabled=false}};
 setInterval(()=>{if(currentUser&&!document.hidden)loadChat()},8000);
 await refreshSession();db.auth.onAuthStateChange((_event,session)=>{if(session?.user?.id!==currentUser?.id){currentUser=session?.user||null;showAuth();if(currentUser)loadWorkspace()}});
-</script></body></html>
+</script><script src="/marinequo-command-center.js" defer></script></body></html>
