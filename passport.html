@@ -193,4 +193,5 @@ setInterval(()=>{if(currentUser&&!document.hidden)loadChat()},8000);
 db.auth.onAuthStateChange((_event,session)=>{if(session?.user?.id!==currentUser?.id){currentUser=session?.user||null;showAuth();if(currentUser&&!recovery.isActive())setTimeout(()=>{if(currentUser&&!recovery.isActive())loadWorkspace()},0)}});
 await refreshSession();recovery.settle();
 </script><script src="/marinequo-command-center.js" defer></script><script src="/marinequo-app.js" defer></script>
+<script src="/passport-vessel-motion.js" defer></script>
 </body></html>
