@@ -343,12 +343,24 @@ a:hover .wave-action,button:hover .wave-action{transform:translateX(3px)}
 @media(max-width:600px){.hero header .kontes-logo{padding:5px;border-radius:7px;box-shadow:0 0 0 3px #ffffff08,0 0 0 4px #d9bd8b33}.hero header .brandrow{gap:11px}.wave-action{width:21px;height:12px}.hero .actions .wave-action{width:22px}.hero header .portal-signin{padding:11px 7px}}
 @media(prefers-reduced-motion:reduce){.wave-action{transition:none}}
 </style><style id="kontes-signature-header">
-.hero header .brandrow{gap:16px}
-.hero header .kontes-signature{display:block;font:500 20px/1.05 Manrope,Arial,sans-serif;letter-spacing:.22em;color:#f4f5f3}
-.hero header .signature-marine{display:block;font-size:12px;font-weight:400;letter-spacing:.47em;margin-top:7px;color:#e1c89c}
-.hero header .kontes-signature small{font:500 6px/1.4 Manrope,Arial,sans-serif;letter-spacing:.15em;margin-top:10px;color:#b9cbd5}
-.hero header .kontes-logo{width:66px;height:60px;border-radius:5px;box-shadow:0 0 0 4px #ffffff06,0 0 0 5px #d9bd8b22}
-@media(max-width:600px){.hero header .brandrow{gap:11px}.hero header .kontes-signature{font-size:14px;letter-spacing:.14em}.hero header .signature-marine{font-size:9px;letter-spacing:.31em;margin-top:5px}.hero header .kontes-signature small{display:none}.hero header .kontes-logo{width:49px;height:47px}}
+/* Original transparent logo, with a compact single-line wordmark. */
+.hero header .brandrow{gap:12px;align-items:center}
+.hero header .kontes-logo{width:100px;height:68px;object-fit:contain;background:transparent;border:0;border-radius:0;padding:0;box-shadow:none;filter:brightness(0) invert(1);flex-shrink:0}
+.hero header .brand .kontes-signature{display:block;padding:0;border:0;font:600 16px/1.25 Manrope,Arial,sans-serif!important;letter-spacing:.13em!important;color:#f4f5f3;white-space:nowrap}
+.hero header .brand .signature-marine{display:inline;margin:0 0 0 .38em;font:inherit!important;letter-spacing:inherit!important;color:#e1c89c}
+.hero header .brand .kontes-signature small{display:block;margin-top:8px;padding-top:8px;border-top:1px solid #d9bd8b55;font:500 7px/1.4 Manrope,Arial,sans-serif!important;letter-spacing:.17em!important;color:#e1c89c!important}
+@media(max-width:600px){
+ .hero header .brandrow{gap:7px}
+ .hero header .kontes-logo{width:52px;height:48px}
+ .hero header .brand .kontes-signature{font-size:11px!important;letter-spacing:.06em!important}
+ .hero header .brand .kontes-signature small{display:block;font-size:5.5px!important;letter-spacing:.06em!important;margin-top:5px;padding-top:5px}
+}
+@media(max-width:380px){
+ .hero header .brandrow{gap:5px}
+ .hero header .kontes-logo{width:39px;height:42px}
+ .hero header .brand .kontes-signature{font-size:10px!important;letter-spacing:.03em!important}
+ .hero header .brand .kontes-signature small{font-size:5px!important;letter-spacing:.02em!important}
+}
 </style><style id="ocean-photo-motion">.hero{isolation:isolate}.ocean-motion{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0;transition:opacity 1.2s ease}.ocean-motion.is-flowing{opacity:1}.hero header,.hero .hero-body{position:relative;z-index:2}.hero-waves{z-index:1!important}@media(prefers-reduced-motion:reduce){.ocean-motion{display:none!important}}</style>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/marinequo-180.png">
