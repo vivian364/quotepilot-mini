@@ -19,6 +19,7 @@ create table public.vessel_equipment (
 alter table public.vessel_equipment enable row level security;
 revoke all on public.vessel_equipment from anon,authenticated;
 grant select,insert,update on public.vessel_equipment to authenticated;
+create index vessel_equipment_vessel_idx on public.vessel_equipment(vessel_id);
 create index vessel_equipment_owner_vessel_idx on public.vessel_equipment(owner_id,vessel_id);
 create policy equipment_read_own on public.vessel_equipment for select to authenticated using (owner_id=(select auth.uid()) and vessel_id in (select id from public.vessels where owner_id=(select auth.uid())));
 create policy equipment_insert_own on public.vessel_equipment for insert to authenticated with check (owner_id=(select auth.uid()) and vessel_id in (select id from public.vessels where owner_id=(select auth.uid())));
