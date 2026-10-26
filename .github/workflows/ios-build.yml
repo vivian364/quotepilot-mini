@@ -1,0 +1,24 @@
+name: iOS simulator build
+on:
+  workflow_dispatch:
+  push:
+    paths: ["MarineQuo-iOS.zip", ".github/workflows/ios-build.yml"]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract iOS source
+        run: unzip -q MarineQuo-iOS.zip -d ios-source
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: cd ios-source/ios && xcodegen generate
+      - name: Build for simulator
+        run: xcodebuild -project ios-source/ios/MarineQuo.xcodeproj -scheme MarineQuo -sdk iphonesimulator -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MarineQuo-simulator
+          path: build/Build/Products/Debug-iphonesimulator/MarineQuo.app
