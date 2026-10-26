@@ -1,36 +1,39 @@
-# Google price search — active configuration
+# Country-based batch price search
 
-Google price search for Instant Quotation and Vessel Passport. Provider credentials are stored privately in Supabase Edge Function secrets. Default uplift: 15%.
+Active on MARINE QUO Instant Quotation and Vessel Passport. Provider credentials remain in Supabase Edge Function secrets; no private key is included in this repository.
 
-## Pricing rule
+## Customer workflow
 
-Default 15% uplift over the matched public market price, adjustable by Marine admins from 10% to 15%. EUR 100 becomes EUR 115 at 15% or EUR 110 at 10%. This is a cost uplift, not a gross-margin percentage. Round up to cents. Public estimates include only the resulting customer price; source cost, supplier and uplift remain in admin-only RLS tables.
+Choose the delivery country, paste up to 50 rows from Excel or import a CSV/TSV file up to 1 MB. Format: `Manufacturer; Part number; Quantity`. Excel tabs, comma-delimited CSV, semicolons, header rows and quoted fields are supported. Copy the three relevant columns from .xlsx; the ordinary RFQ attachment feature still accepts Excel, Word, PDF, photos and ZIP separately.
 
-A public listing is a market reference, not a confirmed wholesale purchase price. The result is indicative per listed unit/package; VAT, freight, availability and suitability still require confirmation. No currency conversion, invented prices or automatic orders.
+Recognized delivery ports suggest a country, including Piraeus, Singapore, Rotterdam, Hamburg, Dubai, Houston, Port Louis and Shanghai. The country remains visible and explicitly selectable. Search uses that country's Google Shopping domain, country code and location; it never silently substitutes another country. Countries without supported Google Shopping coverage, including Mauritius and mainland China, produce Price on request for a local manual quotation.
 
-## Connection and recovery
+Each line shows quantity, marked-up unit price, line total and status in the selected market's currency. The subtotal includes priced lines only and clearly states how many lines it covers. Unmatched, unavailable and unsearched lines remain visible. Two searches run concurrently; Stop prevents new searches from starting while active ones finish. Duplicate product codes in one batch share a lookup. Export CSV includes every line and status; Add full list to RFQ transfers the entire list, quantities, country and estimate references.
 
-1. Obtain a SerpApi API key for its Google Shopping API. Review provider terms and any fees yourself; no subscription or billing has been enabled by this implementation.
-2. In Supabase project MARINE QUO, add an Edge Function secret named `SERPAPI_API_KEY`. Never put the key in frontend code or send it in chat.
-3. Deploy/merge the prepared frontend branch after a real query succeeds.
-4. Sign into the Marine admin account, open Price search → Private settings, set the uplift from 10 to 15 and enable live search. The API defaults to disabled until explicitly activated.
+## Pricing and access
 
-Backend function `rfq-price-search` and SQL settings/audit tables have been installed. GET returns only a readiness boolean; configured:true was verified. Live search has been enabled with 15% uplift. The connected provider is on its free 250-search/month plan; no paid plan was selected. Searches stop when provider quota is exhausted.
+Default uplift is 15%, configurable by Marine admins between 10% and 15%. This is a markup over a public market reference, not a guaranteed wholesale purchase price or gross-margin calculation. Round up to the local currency's minor unit. Unit price times quantity produces the line total. No exchange-rate conversion is performed. Reject wrong currencies, other model numbers, installments and used/refurbished/explicit compatible-replacement listings.
 
-## Matching and privacy
+Prices are indicative per listed unit/package. Taxes, freight, delivery to a vessel, availability and technical compatibility require confirmation. Search localization does not prove local stock or a seller's warehouse location. No orders or stock reservations are placed automatically.
 
-One manufacturer and exact model/part number at a time. Google Shopping results are supplied through the SerpApi API. Accept only exact normalized title matches, EUR prices and HTTPS references. Reject other models, installments, used/refurbished items and explicitly compatible/replacement listings. Unmatched requests show Price on request. Google Shopping coverage of industrial/marine spares is incomplete; no estimate is guaranteed.
+Public responses contain only selling prices, quantities, country/currency and estimate IDs. The source price, supplier link and markup are available only to Marine admins through RLS-protected settings/history. Latest 100 estimate records appear in the admin history. All outputs use text rendering; CSV exports neutralize spreadsheet formulas.
 
-Only manufacturer and product code are sent to the provider. RFQ attachments, company details, email addresses and vessel details are not sent. All output is rendered as text. Source prices/URLs are stored in `rfq_price_estimates`, readable only by Marine admins. `rfq_price_settings` is editable only by Marine admins. Guests receive marked-up price only, with an estimate ID and timestamp.
+## Backend
 
-## Abuse limits
+- `rfq-price-search` validates the signed, IP-bound, expiring one-use proof, manufacturer/part, selected market and quantity, then searches through the connected SerpApi Google Shopping API.
+- The same HMAC proof mechanism is reused from existing RFQ submission. Limits: 60 lookups per IP per hour, 100 globally per UTC day, plus existing challenge limits and the provider's own account quota. The connected account is on the free 250-search/month plan; no paid plan was enabled. One different product lookup can consume one provider search; provider caching may avoid charges against quota.
+- `rfq_price_estimates` stores country, currency, quantity, line total and source/selling prices privately. Existing EUR records default to Germany; no historical prices are converted.
+- `rfq-submit-v2` accepts up to 20,000 product-description characters to fit bulk lists. Attachment limits remain 5 files, 15 MiB each and 20 MiB total; the bounded request reader allows 256 KiB of multipart metadata. `validation_only:true` validates without inserting an RFQ, uploading files, sending email or returning a successful-submission receipt.
+- `rfq-price-markets.mjs` is the public market/list/CSV helper. Its backend copy is packaged with the deployed function. Backend source, migrations and tests are in `google-price-search-backend.zip`.
 
-Reuse the existing HMAC-signed expiring proof-of-work verification, bound to a request ID and IP; consume each price proof once. Persistent limits: 5 queries per IP per hour and 100 globally per UTC day. Provider failure, no API key, disabled setting or failed audit storage must not return an estimate. API credentials stay server side.
+## Verified
 
-## Validation
+Node tests passed for parsing Excel/CSV/TSV, 50-line bounds, quantities, exact part matching, incompatible currencies, private cost fields, 10–15% markup, zero-decimal currencies, totals, unsupported countries, port suggestions and CSV safety. DOM tests passed for two-worker queue, duplicate reuse, partial subtotals, missing lines, cancellation, full RFQ transfer and wrong-country/currency rejection.
 
-Four Node test groups passed: percentage limits/rounding; exact product matching; reject wrong currency/used/installments/insecure URLs; prevent source-cost/markup leaks in the public response. DOM test passed: display EUR 115 for a mocked EUR 100 source at 15%, add estimate reference to RFQ, and clear stale estimate when provider is unavailable. All inline JavaScript and new module syntax checked. Real Google Shopping query passed for Schneider A9F74116: source EUR 66.52, 15% uplift, resulting customer price EUR 76.50. Audit record b1d9e052-47bf-423e-b061-e2bbead54d79 confirms the server calculation. Unmatched Danfoss queries correctly returned Price on request. Public response contained no source price, markup or supplier URL.
+Real country tests passed for Schneider A9F74116: Germany EUR 76.54 x 2 = EUR 153.08; United Kingdom GBP 64.09 x 3 = GBP 192.27, each including server-side 15% uplift. Prices are time-specific examples, not a permanent price list. DB audit records f912a433-af72-4400-8a18-18c282d085e6 and aba3390e-493e-4db4-89bc-2fd50feca2ac confirm country, currency, quantities and calculations.
 
-## Files
+A 50-line, 6,059-character request passed the deployed validation-only path. A database transaction accepted 19,000 characters and was rolled back. This test did not require an email notification. Existing analytics, craft categories, registration fields, attachments, notifications and weather/news placement are preserved.
 
-`rfq-price-search.js` mounts the price widget and admin controls. `index.html` loads the module; `passport.html` initializes private settings for Marine admins. `google-price-search-backend.zip` contains the deployed backend, schema and Node tests. Existing attachments and submission endpoints are preserved.
+## Recovery
+
+Pre-pricing backup: `backup-before-google-prices-20261026`. The single-item price implementation is retained in commit 6d7a26b. Later craft/account changes are preserved from main before applying the batch module. Disabling `rfq_price_settings.enabled` stops live search without affecting ordinary RFQ submission.
