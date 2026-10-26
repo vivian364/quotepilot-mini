@@ -11,3 +11,5 @@ Limits: five files, 15 MB per file, 20 MB total; 20 PDF pages, up to ten scanned
 Dependencies: SheetJS 0.20.3, Mammoth 1.13.0, PDF.js 6.4.299, Tesseract.js 7.0.0, JSZip 3.10.2. Legacy DOC reader is bundled from word-extractor 1.0.4 with Browserify and its Buffer/stream dependencies. See bundled license. Existing markup, country pricing and private attachment checks remain in effect.
 
 Favicon: existing gold mQ brand icon marinequo-192.png, linked from both HTML pages. Google decides when and whether it displays the updated icon.
+
+Legacy DOC bundle compatibility patch: OLE UTF-16 directory names use an even byte length to match Node Buffer decoding in browser Buffer. Verified against upstream test01.doc.

@@ -1,4 +1,4 @@
-import {readDocuments,READ_TYPES} from '/rfq-file-reader.mjs';
+import {readDocuments,READ_TYPES} from '/rfq-file-reader.mjs?v=2';
 import {guestProof} from '/rfq-attachments.js';
 import {MARKETS,parsePriceList,moneyTotal,suggestedMarket,safeCsvCell} from '/rfq-price-markets.mjs?v=20261026-batch1';
 const endpoint='https://kcgfxzztblrueplxthvb.supabase.co/functions/v1/rfq-price-search';
