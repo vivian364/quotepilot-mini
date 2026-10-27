@@ -1,4 +1,5 @@
-import {mountReview,mountBrandedRFQ} from '/rfq-workspace.mjs?v=1';
+import {mountCustomerDirectory} from '/admin-customers.mjs?v=1';
+import {mountReview,mountBrandedRFQ} from '/rfq-workspace.mjs?v=2';
 import {mountCatalogAdmin} from '/rfq-catalog-admin.mjs?v=1';
 import {readDocuments,READ_TYPES} from '/rfq-file-reader.mjs?v=2';
 import {guestProof} from '/rfq-attachments.js';
@@ -57,6 +58,7 @@ export function mountPriceSearch(form,details){
 export async function mountPriceAdmin(db){
  const admin=document.getElementById('adminPanel');if(!admin||admin.hidden)return;
  let panel=document.getElementById('mqPriceAdmin');if(!panel){panel=node('section');panel.id='mqPriceAdmin';panel.className='portal-card';admin.append(panel);}panel.replaceChildren(node('h3','Price search · Private settings'));
+ await mountCustomerDirectory(db,panel);
  const [{data:settings,error},{data:estimates,error:auditError}]=await Promise.all([db.from('rfq_price_settings').select('markup_percent,enabled').eq('id',1).single(),db.from('rfq_price_estimates').select('*').order('created_at',{ascending:false}).limit(100)]);
  if(error){panel.append(node('p','Price settings unavailable.'));return;}
  const form=node('form'),label=node('label','Price uplift (%)'),input=node('input');input.type='number';input.min='10';input.max='15';input.step='0.5';input.required=true;input.value=settings.markup_percent;label.append(input);

@@ -10,3 +10,8 @@ Admin: Private settings → Private country price lists. Enter real base costs, 
 Backend archive contains deployed Edge Function source, additive schema and tests. Existing proof-of-work, one-use proofs and rate limits remain active. No production RFQ notification was sent for this upgrade's tests.
 
 Validation before publication: ten pricing/batch unit tests; editable-table/quantity/injection DOM checks; mocked edge catalog priority/filter/markup checks; real transactional RLS anonymous/non-admin/admin isolation with fixtures rolled back. Live existing PDF reader correctly extracted Schneider A9F74116 quantity 2 and Danfoss KP35 quantity 3. Logo/render/print interaction verification follows publication.
+
+## Registered customer directory
+Private settings includes Registered customers (admin only), 50 accounts per page, page filter, company/contact/email, registration date and email confirmation status. A dedicated Edge Function validates the current JWT with getUser, checks admin_users on every request, and returns only these fields. No service key reaches the browser. Profiles with no company are labeled incomplete. Anonymous guest RFQs remain separate. Missing/invalid token and non-admin denial tested before any Auth directory access.
+
+Live verification: company logo upload and two-item RFQ preview rendered correctly on marinequo.com. Browser print action invoked; final OS Save as PDF dialog is not observable in the remote browser. Protected live catalog fallback for Mauritius passed with no provider lookup or RFQ email.

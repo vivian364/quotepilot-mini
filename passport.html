@@ -191,7 +191,7 @@
 (()=>{const login=document.getElementById('loginTab'),register=document.getElementById('registerTab');function show(registering){login.setAttribute('aria-selected',String(!registering));register.setAttribute('aria-selected',String(registering));document.getElementById('loginPane').hidden=registering;document.getElementById('registerPane').hidden=!registering}login.onclick=()=>show(false);register.onclick=()=>show(true);if(location.search.includes('register'))show(true)})();
 </script><script type="module">
 import { mountEquipmentPassport } from '/equipment-passport.js';
-import { mountPriceAdmin } from '/rfq-price-search.js?v=20261027-workspace1';
+import { mountPriceAdmin } from '/rfq-price-search.js?v=20261027-workspace2';
 import { attachFiles, sendFiles, appendDownloads } from '/rfq-attachments.js';
 import { setupPasswordReset } from '/password-reset.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
