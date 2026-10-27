@@ -1,0 +1,34 @@
+// npm install --no-save jsdom@26.1.0 jsqr@1.4.0; node refrigeration-passport.test.mjs
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),{JSDOM}=require('jsdom'),jsQR=require('jsqr');
+import {servicePayload,checkEquipmentDocument,qrMatrix,equipmentLink,mountRefrigerationPassport} from './refrigeration-passport.mjs';
+const id='f3010000-0000-4000-8000-000000000002',today='2026-10-27';
+assert.equal(servicePayload({kind:'refrigerant_added',event_date:today,refrigerant:' R134a ',quantity_kg:'1.25'},today).quantity_kg,1.25);
+for(const v of [{kind:'service',event_date:'2026-02-30'},{kind:'service',event_date:'2026-10-28'},{kind:'refrigerant_added',event_date:today,quantity_kg:'1'},{kind:'service',event_date:today,quantity_kg:'-1'},{kind:'service',event_date:today,quantity_kg:'1.0001'}])assert.throws(()=>servicePayload(v,today));
+const pdf=new Blob(['%PDF-1.7\nfixture'],{type:'application/pdf'});
+assert.equal(await checkEquipmentDocument(pdf),'pdf');
+await assert.rejects(()=>checkEquipmentDocument(new Blob(['<script>fake PDF</script>'],{type:'application/pdf'})));
+await assert.rejects(()=>checkEquipmentDocument({type:'application/pdf',size:5242881}));
+await assert.rejects(()=>checkEquipmentDocument(new Blob(['x'],{type:'image/svg+xml'})));
+assert.throws(()=>equipmentLink('javascript:alert(1)'));
+const matrix=qrMatrix(id),scale=6,side=(matrix.length+8)*scale,pixels=new Uint8ClampedArray(side*side*4).fill(255);
+for(let y=0;y<matrix.length;y++)for(let x=0;x<matrix.length;x++)if(matrix[y][x])for(let dy=0;dy<scale;dy++)for(let dx=0;dx<scale;dx++){const p=(((y+4)*scale+dy)*side+(x+4)*scale+dx)*4;pixels[p]=pixels[p+1]=pixels[p+2]=0;}
+assert.equal(jsQR(pixels,side,side).data,equipmentLink(id));
+const dom=new JSDOM('<div id="portalWorkspace"><nav class="workspace-nav"></nav><div><section id="equipmentSection"></section></div></div>',{url:'https://marinequo.com/passport.html?equipment='+id});
+Object.assign(globalThis,{document:dom.window.document,location:dom.window.location,FormData:dom.window.FormData});
+dom.window.HTMLElement.prototype.scrollIntoView=function(){};
+let state={user:{id:'owner'},vessels:[{id:'vessel',vessel_name:'Test vessel'}]},calls=[],failMetadata=false,removed=[],profile={refrigerant:'R134a'},pending=null;
+const bucket={upload:async(path)=>{calls.push(['upload',path]);return {error:null};},remove:async(paths)=>{removed.push(...paths);return {error:null};},download:async()=>({data:pdf,error:null})};
+const db={storage:{from:name=>{assert.equal(name,'marine-equipment-documents');return bucket;}},from(table){let op='select',payload;const q={select(){return q},eq(){return q},order(){return q},range(){return q},maybeSingle(){return q},upsert(v){op='upsert';payload=v;return q},insert(v){op='insert';payload=v;return q},update(v){op='update';payload=v;return q},then(resolve,reject){calls.push([table,op,payload]);if(pending&&table==='equipment_refrigeration'&&op==='select')return pending.then(resolve,reject);let result={data:table==='equipment_refrigeration'?profile:[],error:null};if(op==='upsert')profile=payload;if(op==='insert'&&table==='equipment_documents'&&failMetadata)result.error={message:'metadata failed'};return Promise.resolve(result).then(resolve,reject)}};return q;}};
+const controller=mountRefrigerationPassport({db,getState:()=>state,parent:document.querySelector('#equipmentSection'),onUseEquipment:r=>calls.push(['RFQ',r.id])});
+const $=name=>document.querySelector('[data-ref="'+name+'"]'),settle=()=>new Promise(r=>setTimeout(r,10)),record={id,vessel_id:'vessel',name:'<img onerror=alert(1)>',category:'Refrigeration'};
+controller.sync([record]);await settle();assert.equal($('content').hidden,false);assert.equal($('profile').elements.refrigerant.value,'R134a');assert.equal($('meta').querySelector('img'),null);
+$('profile').elements.nominal_charge_kg.value='2.5';$('profile').dispatchEvent(new dom.window.Event('submit',{cancelable:true}));await settle();assert(calls.some(c=>c[0]==='equipment_refrigeration'&&c[1]==='upsert'&&c[2].nominal_charge_kg===2.5));
+$('request').click();assert(calls.some(c=>c[0]==='RFQ'&&c[1]===id));
+Object.defineProperty(pdf,'name',{value:'certificate.pdf'});Object.defineProperty($('upload').elements.document,'files',{value:[pdf],configurable:true});
+failMetadata=true;$('upload').dispatchEvent(new dom.window.Event('submit',{cancelable:true}));await settle();assert.equal(removed.length,1);assert.match($('status').textContent,/metadata failed/);
+failMetadata=false;$('upload').dispatchEvent(new dom.window.Event('submit',{cancelable:true}));await settle();assert.match($('status').textContent,/Private document attached/);
+let release;pending=new Promise(r=>release=r);$('refresh').click();state={user:null,vessels:[]};controller.reset();release({data:{refrigerant:'PRIVATE OLD ACCOUNT'},error:null});await settle();assert.equal($('content').hidden,true);assert.equal($('profile').elements.refrigerant.value,'');assert.equal($('history').textContent,'');
+assert(!document.body.textContent.includes('PRIVATE OLD ACCOUNT'));
+console.log('PASS: QR decode, date/quantity validation, file signatures/limits, private UI load/save, upload/cleanup mocks, RFQ handoff, and logout race.');
