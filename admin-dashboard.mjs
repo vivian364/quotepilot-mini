@@ -1,0 +1,25 @@
+import {mountCustomerDirectory} from '/admin-customers.mjs?v=2';
+const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
+let sessionId=null;
+export function syncAdminSession(id,force=false){
+ if(sessionId===id&&!force)return;sessionId=id;document.body.classList.remove('mq-admin-view');
+ const panel=document.getElementById('adminPanel'),workspace=document.getElementById('portalWorkspace');
+ if(panel){panel.hidden=true;panel.querySelector('#adminQuotes')?.replaceChildren();panel.querySelector('#mqPriceAdmin')?.remove();panel.querySelector('#guestRequests')?.remove();workspace?.append(panel);}
+ document.getElementById('mqAdminHome')?.remove();
+}
+export function mountAdminDashboard(db,user){
+ if(!user||sessionId!==user.id)return;
+ const workspace=document.getElementById('portalWorkspace'),panel=document.getElementById('adminPanel');if(!workspace||!panel||panel.hidden)return;
+ let home=document.getElementById('mqAdminHome');if(home)return;
+ if(!document.getElementById('mqAdminStyle')){const style=el('style');style.id='mqAdminStyle';style.textContent=`
+ #mqAdminHome{scroll-margin-top:20px;color:#163b50}#mqAdminHome .mq-admin-hero{background:linear-gradient(120deg,#082639,#16445a);color:white;padding:28px;border-radius:16px;margin:8px 0 20px}#mqAdminHome h1{font:600 clamp(30px,5vw,48px)/1.1 'Barlow Condensed',Arial,sans-serif;margin:8px 0}#mqAdminHome .mq-admin-hero p{font-size:12px;color:#d0e0e9;overflow-wrap:anywhere}#mqAdminHome .mq-admin-eyebrow{color:#e3c795;font-size:10px;letter-spacing:2px}#mqAdminHome nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}#mqAdminHome nav a,#mqAdminHome .mq-admin-toggle{padding:11px 15px;border:1px solid #76909c;border-radius:7px;color:white;background:#ffffff0a;font:600 12px Manrope,Arial,sans-serif;text-decoration:none;cursor:pointer}#mqAdminHome nav a:first-child{background:#e3c795;color:#082639;border-color:#e3c795}#mqAdminHome .mq-admin-directory{background:white;border:1px solid #cbdde6;border-radius:12px;padding:22px;margin:18px 0}#mqAdminHome .mq-admin-directory h2{font:600 28px 'Barlow Condensed',Arial,sans-serif;margin:0 0 12px}#mqAdminHome .request-record{border:1px solid #dce7ec;padding:16px;border-radius:8px;margin:10px 0;overflow-wrap:anywhere}#mqAdminHome .request-record p{font-size:12px;line-height:1.6;color:#526e7e}#mqAdminHome #adminPanel{border-radius:12px}body.mq-admin-view #portalWorkspace>:not(#mqAdminHome){display:none!important}body.mq-admin-view .passport-main>.mq-bulletin{display:none}#mqAdminHome [id]{scroll-margin-top:24px}@media(max-width:600px){#mqAdminHome .mq-admin-hero{padding:22px 18px}#mqAdminHome .mq-admin-directory{padding:16px}#mqAdminHome nav a{flex:1;text-align:center}#mqAdminHome #adminPanel{padding:16px}}
+ `;document.head.append(style);}
+ home=el('section');home.id='mqAdminHome';home.setAttribute('aria-label','Administrator dashboard');const hero=el('header');hero.className='mq-admin-hero';const eyebrow=el('div','KONTES MARINE · ADMINISTRATOR');eyebrow.className='mq-admin-eyebrow';const heading=el('h1','Πίνακας διαχειριστή'),identity=el('p','Συνδεδεμένη ως '+user.email),intro=el('p','Οι εγγραφές και τα αιτήματα των πελατών σου, συγκεντρωμένα εδώ.');
+ const nav=el('nav');nav.setAttribute('aria-label','Administrator sections');for(const [label,target] of [['Πελάτες / Customers','mqAdminCustomers'],['RFQ πελατών','adminQuotes'],['RFQ χωρίς λογαριασμό','guestRequests'],['Τιμές & ρυθμίσεις','mqPriceAdmin'],['Μηνύματα','messageSection']]){const link=el('a',label);link.href='#'+target;if(target==='messageSection')link.onclick=()=>{document.body.classList.remove('mq-admin-view');toggle.textContent='Επιστροφή στην προβολή διαχειριστή';};nav.append(link);}
+ const toggle=el('button','Προσωπικός λογαριασμός / My fleet');toggle.type='button';toggle.className='mq-admin-toggle';toggle.onclick=()=>{const adminView=document.body.classList.toggle('mq-admin-view');toggle.textContent=adminView?'Προσωπικός λογαριασμός / My fleet':'Επιστροφή στην προβολή διαχειριστή';if(!adminView)workspace.querySelector('.workspace-nav')?.scrollIntoView({block:'start'});else home.scrollIntoView({block:'start'});};hero.append(eyebrow,heading,identity,intro,nav,toggle);
+ const customers=el('section');customers.id='mqAdminCustomers';customers.className='mq-admin-directory';home.append(hero,customers,panel);workspace.prepend(home);document.body.classList.add('mq-admin-view');
+ mountCustomerDirectory(db,customers,{expanded:true});home.scrollIntoView({block:'start'});
+}
+if(new URLSearchParams(location.search).get('admin')==='1'){
+ const title=document.querySelector('#loginPane h2'),caption=document.querySelector('#loginPane .auth-caption');document.getElementById('authPanel')?.scrollIntoView({block:'start'});if(title)title.textContent='Σύνδεση διαχειριστή';if(caption)caption.textContent='Μπες με το υπάρχον email και τον κωδικό σου. Τα δικαιώματα ελέγχονται μετά τη σύνδεση.';
+}
